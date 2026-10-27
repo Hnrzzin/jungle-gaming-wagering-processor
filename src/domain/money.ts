@@ -13,6 +13,7 @@ export class Money { //permite que a classe seja ultilizada em outros arquivos
     public readonly currency: string,
   ) {}
 
+  // portas de entrada para criar Money, validam e retornam um objeto montado
   static from(props: MoneyProps): Money { // recebe as propriedades, chama os métodos de validação e retorna o objeto montado
         Money.assertValidCurrency(props.currency);
         Money.assertValidAmount(props.amount);
@@ -24,11 +25,21 @@ export class Money { //permite que a classe seja ultilizada em outros arquivos
         return new Money(new Decimal(0), currency);
   }
 
+  // métodos de operação, retornam um novo Money, não alteram o original
   add(other: Money): Money { // soma e devolve um Money novo, sem mexer no original
         this.assertSameCurrency(other); // chamo na adição pois não faz sentido somar moedas diferentes
         return new Money(this.value.plus(other.value), this.currency);
   }
 
+  subtract(other: Money): Money{
+        this.assertSameCurrency(other);
+        return new Money(this.value.minus(other.value), this.currency);
+  }
+
+  negate(): Money{ //serve para inverter o sinal do valor, útil para operações de subtração
+        return new Money(this.value.negated(), this.currency);
+  }
+  // fuunções de validação que lançam erros
   private static assertValidAmount(amount: string): void {
         if (typeof amount !== "string" || !/^\d+(\.\d{1,2})?$/.test(amount)) {
         throw new InvalidMoneyError(`Valor inválido: "${amount}"`);
@@ -46,7 +57,7 @@ export class Money { //permite que a classe seja ultilizada em outros arquivos
         throw new CurrencyMismatchError(`${this.currency} é diferente de ${other.currency}`);
     }
   }
-
+  // funções para mostrar os valores
    toString(): string {
         return this.value.toFixed(2);
   }
@@ -54,15 +65,11 @@ export class Money { //permite que a classe seja ultilizada em outros arquivos
   toJSON(): MoneyProps {
         return { amount: this.toString(), currency: this.currency };
   }
+  // funções de comparação (retornam true ou false)
+  equals(other: Money): boolean {
+  return this.currency === other.currency && this.value.equals(other.value);
+}
 
-  subtract(other: Money): Money{
-        this.assertSameCurrency(other);
-        return new Money(this.value.minus(other.value), this.currency);
-  }
-
-  negate(): Money{ //serve para inverter o sinal do valor, útil para operações de subtração
-        return new Money(this.value.negated(), this.currency);
-  }
   isZero(): boolean{
          return this.value.isZero();
   }
@@ -86,9 +93,7 @@ export class Money { //permite que a classe seja ultilizada em outros arquivos
         
   }
 
-    equals(other: Money): boolean {
-  return this.currency === other.currency && this.value.equals(other.value);
-}
+    
   
 }
 
