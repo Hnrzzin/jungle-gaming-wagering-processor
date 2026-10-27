@@ -10,3 +10,4 @@ export class CurrencyMismatchError extends DomainError {}
 export class InsufficientBalanceError extends DomainError {}
 export class InvalidOperationAmountError extends DomainError {}
 export class InvalidLedgerEntryError extends DomainError {}
+export class InvalidWalletError extends DomainError {}
