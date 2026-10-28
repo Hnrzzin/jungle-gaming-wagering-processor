@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "bun:test";
-import { createOrm } from "../../../src/domain/database/orm";
+import { createOrm } from "../../src/infrastructure/database/orm";
 
 describe("conexão com o PostgreSQL", () => {
   let orm: Awaited<ReturnType<typeof createOrm>>;

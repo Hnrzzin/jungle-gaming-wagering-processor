@@ -7,6 +7,7 @@
     "typecheck": "bun check"
   },
   "devDependencies": {
+    "@mikro-orm/cli": "7.2.5",
     "@types/bun": "latest"
   },
   "peerDependencies": {
@@ -14,6 +15,7 @@
   },
   "dependencies": {
     "@mikro-orm/core": "7.2.5",
+    "@mikro-orm/migrations": "7.2.5",
     "@mikro-orm/postgresql": "7.2.5",
     "@nestjs/common": "12.2.0",
     "@nestjs/core": "12.2.0",
