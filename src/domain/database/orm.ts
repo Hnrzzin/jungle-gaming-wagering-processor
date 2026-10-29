@@ -30,7 +30,7 @@ export async function createOrm(): Promise<MikroORM> {
   throw error;
 });
   // Para gerenciar o banco de dados, você usará o EntityManager (em)
-  const em = orm.em;
+  const em = orm.em; 
   if (!em) {
     throw new Error('Falha ao obter o EntityManager do ORM');
   }
