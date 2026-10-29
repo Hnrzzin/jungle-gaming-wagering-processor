@@ -21,7 +21,7 @@ export class Migration20261028150000 extends Migration {
         status VARCHAR(32) NOT NULL,
         amount NUMERIC(19,2) NOT NULL,
         currency VARCHAR(3) NOT NULL,
-        CREATEd_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL,
         processed_at TIMESTAMPTZ,
 
         CONSTRAINT wagering_transactions_provider_idempotency_key
@@ -42,7 +42,7 @@ export class Migration20261028150000 extends Migration {
         amount NUMERIC(19,2) NOT NULL,
         balance_before NUMERIC(19,2) NOT NULL,
         balance_after NUMERIC(19,2) NOT NULL,
-        CREATEd_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL,
 
         CONSTRAINT wallet_ledger_entries_wallet_fk
           FOREIGN KEY (wallet_id) REFERENCES wallets (id),
