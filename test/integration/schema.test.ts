@@ -12,7 +12,8 @@ describe("schema do PostgreSQL: tabela wallets", () => {
   });
 
   beforeEach(async () => {
-    await orm.em.getConnection().execute("delete from wallets");
+    await orm.em.getConnection().execute("truncate wallet_ledger_entries, wagering_transactions, wallets cascade");
+    
   });
 
   afterAll(async () => {
