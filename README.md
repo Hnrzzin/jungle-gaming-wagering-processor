@@ -34,7 +34,7 @@ A API fica disponível em `http://localhost:3000/api`.
 
 - `GET /api/health/live`: liveness.
 - `GET /api/health/ready`: readiness, incluindo conexão PostgreSQL.
-- `POST /api/wallets`: provisionamento de carteira com saldo inicial e lançamento de abertura.
+- `POST /api/wallets`: provisionamento protegido de carteira com saldo inicial e lançamento de abertura.
 - `POST /api/wagers/bets`: processamento síncrono de BET.
 
 `roundId` e `gameId` são opcionais nesta versão do fluxo BET. Quando enviados, são incluídos no hash idempotente e persistidos.\n\n### Exemplo de BET
@@ -58,7 +58,7 @@ Idempotency-Key: bet-000001
 }
 ```
 
-### Criar carteira\n\n`playerId` deve ser um UUID, pois a coluna persistida usa esse tipo.\n\n```http\nPOST /api/wallets\nContent-Type: application/json\n\n{\n  "playerId": "UUID-DO-JOGADOR",\n  "initialBalance": "100.00",\n  "currency": "BRL"\n}\n```\n\nA criação grava carteira, transação de abertura e crédito inicial no ledger na mesma transação. Use o `walletId` retornado na requisição de BET.
+### Criar carteira\n\n`playerId` deve ser um UUID, pois a coluna persistida usa esse tipo.\n\n```http\nPOST /api/wallets\nContent-Type: application/json\nX-Wallet-Provisioning-Token: valor-configurado-em-WALLET_PROVISIONING_TOKEN\n\n{\n  "playerId": "UUID-DO-JOGADOR",\n  "initialBalance": "100.00",\n  "currency": "BRL"\n}\n```\n\nA criação grava carteira, transação de abertura e crédito inicial no ledger na mesma transação. O endpoint exige `WALLET_PROVISIONING_TOKEN`; sem esse segredo configurado, o provisionamento é negado. Use o `walletId` retornado na requisição de BET.\n\n**Segurança:** o endpoint de BET ainda não implementa autenticação de provider. Execute somente em rede confiável ou atrás de um gateway autenticado até adicionar autenticação por provider.
 
 ## Comandos
 
