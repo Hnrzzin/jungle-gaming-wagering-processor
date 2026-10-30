@@ -412,5 +412,14 @@ export class ProcessWager {
         throw new ProcessWagerValidationError(`${field} is required`);
       }
     }
+
+    for (const [field, value] of [
+      ["roundId", command.roundId],
+      ["gameId", command.gameId],
+    ] as const) {
+      if (value !== undefined && (value.trim().length === 0 || value.length > 128)) {
+        throw new ProcessWagerValidationError(`${field} must contain 1 to 128 characters`);
+      }
+    }
   }
 }
