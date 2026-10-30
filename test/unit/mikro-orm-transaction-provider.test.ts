@@ -113,10 +113,43 @@ describe("MikroOrmPostgreSQLTransactionProvider", () => {
       );
     });
 
-    expect(entityManager.connection.calls[0]?.query).toContain("$1");
+    expect(entityManager.connection.calls[0]?.query).toContain("?");
+    expect(entityManager.connection.calls[0]?.query).not.toContain("$1");
     expect(
       entityManager.connection.calls[0]?.parameters,
     ).toEqual(["wallet-1"]);
+  });
+
+
+  it("converts numbered PostgreSQL placeholders and preserves parameter order", async () => {
+    const entityManager = new FakeEntityManager();
+    const provider = new MikroOrmPostgreSQLTransactionProvider(entityManager);
+
+    await provider.transaction(async (connection) => {
+      await connection.query(
+        "SELECT $2 AS second, $1 AS first",
+        ["first-value", "second-value"],
+      );
+    });
+
+    expect(entityManager.connection.calls[0]?.query).toBe(
+      "SELECT ? AS second, ? AS first",
+    );
+    expect(entityManager.connection.calls[0]?.parameters).toEqual([
+      "second-value",
+      "first-value",
+    ]);
+  });
+
+  it("rejects SQL placeholders without matching parameters", async () => {
+    const entityManager = new FakeEntityManager();
+    const provider = new MikroOrmPostgreSQLTransactionProvider(entityManager);
+
+    await expect(
+      provider.transaction(async (connection) => {
+        await connection.query("SELECT $1", []);
+      }),
+    ).rejects.toThrow("SQL placeholder $1 has no matching parameter");
   });
 
   it("normalizes array results", async () => {
