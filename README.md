@@ -29,6 +29,8 @@ A API fica disponível em `http://localhost:3000/api`.
 | `DB_NAME` | nome do banco |
 | `PORT` | `3000` |
 | `HOST` | `0.0.0.0` |
+| `WAGER_API_TOKEN` | bearer token obrigatório para BET |
+| `WALLET_PROVISIONING_TOKEN` | segredo obrigatório para provisionar carteiras |
 
 ## Endpoints
 
