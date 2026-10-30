@@ -13,6 +13,7 @@ interface ErrorBody {
   readonly message?: string | string[];
   readonly error?: string;
   readonly code?: string;
+  readonly transaction?: unknown;
 }
 
 @Catch()
@@ -37,6 +38,7 @@ export class HttpErrorFilter implements ExceptionFilter {
         statusCode: status,
         code: body.code ?? this.defaultCode(status),
         message: body.message ?? exception.message,
+        ...(body.transaction === undefined ? {} : { transaction: body.transaction }),
         path: request.url,
         timestamp: new Date().toISOString(),
       });
