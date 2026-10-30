@@ -57,7 +57,7 @@ export class Migration20261028150000 extends Migration {
             case
               WHEN direction = 'DEBIT'  THEN balance_before - amount = balance_after
               WHEN direction = 'CREDIT' THEN balance_before + amount = balance_after
-              else false
+              else null
             end
           ),
         CONSTRAINT wallet_ledger_entries_wallet_transaction_key

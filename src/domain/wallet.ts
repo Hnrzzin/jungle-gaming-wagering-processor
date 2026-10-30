@@ -109,13 +109,13 @@ export class Wallet {
   }
 
   credit(op: WalletOperation): WalletLedgerEntry {
-    
+     this.assertValidOperation(op.money);
+
+     const before = this._balance;
+     const after = before.add(op.money);
     if (this.currency !== op.money.currency) {
       throw new CurrencyMismatchError(`${this.currency} é diferente de ${op.money.currency}`);
     }
-
-    const before = this._balance;
-    const after = before.add(op.money);
 
     const entry = WalletLedgerEntry.create({
         id: op.entryId,

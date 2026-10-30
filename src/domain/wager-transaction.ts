@@ -80,6 +80,20 @@ export class WagerTransaction {
     }
     return WagerTransaction.rehydrate({ ...props, status: WagerTransactionStatus.Pending });
   }
+  static createOpening(props: CreateWagerTransactionProps): WagerTransaction {
+  if (props.kind !== WagerTransactionKind.Opening) {
+    throw new InvalidTransactionError(
+      "A factory createOpening só pode criar transações OPENING",
+    );
+  }
+
+  // A abertura é uma operação interna já concluída.
+  return WagerTransaction.rehydrate({
+    ...props,
+    status: WagerTransactionStatus.Processed,
+    processedAt: props.createdAt,
+  });
+}
 
   
   static rehydrate(state: WagerTransactionState): WagerTransaction {
