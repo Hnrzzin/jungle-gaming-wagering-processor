@@ -39,14 +39,17 @@ A API fica disponível em `http://localhost:3000/api`.
 - `POST /api/wallets`: provisionamento protegido de carteira com saldo inicial e lançamento de abertura.
 - `POST /api/wagers/bets`: processamento síncrono de BET.
 
-`roundId` e `gameId` são opcionais nesta versão do fluxo BET. Quando enviados, são incluídos no hash idempotente e persistidos.\n\n### Exemplo de BET
+`roundId` e `gameId` são opcionais nesta versão do fluxo BET. Quando enviados, são incluídos no hash idempotente e persistidos.
+
+### Exemplo de BET
 
 Os headers `Authorization: Bearer <WAGER_API_TOKEN>` e `Idempotency-Key` são obrigatórios.
 
 ```http
 POST /api/wagers/bets
 Content-Type: application/json
-Authorization: Bearer valor-configurado-em-WAGER_API_TOKEN\nIdempotency-Key: bet-000001
+Authorization: Bearer valor-configurado-em-WAGER_API_TOKEN
+Idempotency-Key: bet-000001
 
 {
   "providerId": "provider-1",
@@ -60,7 +63,25 @@ Authorization: Bearer valor-configurado-em-WAGER_API_TOKEN\nIdempotency-Key: bet
 }
 ```
 
-### Criar carteira\n\n`playerId` deve ser um UUID, pois a coluna persistida usa esse tipo.\n\n```http\nPOST /api/wallets\nContent-Type: application/json\nX-Wallet-Provisioning-Token: valor-configurado-em-WALLET_PROVISIONING_TOKEN\n\n{\n  "playerId": "UUID-DO-JOGADOR",\n  "initialBalance": "100.00",\n  "currency": "BRL"\n}\n```\n\nA criação grava carteira, transação de abertura e crédito inicial no ledger na mesma transação. O endpoint exige `WALLET_PROVISIONING_TOKEN`; sem esse segredo configurado, o provisionamento é negado. Use o `walletId` retornado na requisição de BET.\n\n**Segurança:** BET exige um bearer token compartilhado (`WAGER_API_TOKEN`). Para produção, substitua o segredo compartilhado por autenticação por provider, rotação de credenciais e autorização por escopo.
+### Criar carteira
+
+`playerId` deve ser um UUID, pois a coluna persistida usa esse tipo.
+
+```http
+POST /api/wallets
+Content-Type: application/json
+X-Wallet-Provisioning-Token: valor-configurado-em-WALLET_PROVISIONING_TOKEN
+
+{
+  "playerId": "UUID-DO-JOGADOR",
+  "initialBalance": "100.00",
+  "currency": "BRL"
+}
+```
+
+A criação grava carteira, transação de abertura e crédito inicial no ledger na mesma transação. O endpoint exige `WALLET_PROVISIONING_TOKEN`; sem esse segredo configurado, o provisionamento é negado. Use o `walletId` retornado na requisição de BET.
+
+**Segurança:** BET exige um bearer token compartilhado (`WAGER_API_TOKEN`). Para produção, substitua o segredo compartilhado por autenticação por provider, rotação de credenciais e autorização por escopo.
 
 ## Comandos
 
