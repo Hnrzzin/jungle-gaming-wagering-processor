@@ -69,6 +69,6 @@ bun check            # verificação de tipos, conforme configuração Bun do pr
 
 ## Estado funcional e limites atuais
 
-O fluxo HTTP síncrono de BET implementa idempotência persistente por provider, detecção de conflito, validação de carteira/jogador/moeda, débito transacional, lock da carteira e ledger. A migration de compatibilidade alinha o nome da tabela/coluna usados pelo repositório e adiciona os campos/defaults necessários ao INSERT.
+O fluxo HTTP síncrono de BET implementa idempotência persistente por provider, detecção de conflito, validação de carteira/jogador/moeda, débito transacional, lock da carteira e ledger. A migration de compatibilidade preserva o contrato existente (`wagering_transactions.kind`), adiciona `currency` ao ledger com preenchimento automático a partir da carteira para manter compatibilidade com o repositório legado e define defaults de timestamp usados pelo processador.
 
 Ainda não declarar como implementados: processamento de WIN/LOSS/REFUND/ROLLBACK, SQS, Inbox/Outbox, retries/DLQ, reconciliação e recuperação de mensagens após crash. O resultado de testes locais precisa ser executado novamente após estas alterações antes de considerar esta branch pronta para deploy.
