@@ -9,8 +9,10 @@ import { NestFactory } from "@nestjs/core";
 import type { MikroORM } from "@mikro-orm/postgresql";
 import {
   WAGER_TRANSACTION_MANAGER,
+  CREATE_WALLET,
 } from "./application/tokens";
 import { createOrm } from "./infrastructure/database/orm";
+import { CreateWallet } from "./application/use-cases/create-wallet";
 import {
   MikroOrmPostgreSQLTransactionProvider,
   type MikroOrmEntityManagerLike,
@@ -114,6 +116,10 @@ class AppModule {
                   new MikroOrmPostgreSQLTransactionProvider(entityManager),
                   POSTGRES_PROCESS_WAGER_SCHEMA,
                 ),
+            },
+            {
+              provide: CREATE_WALLET,
+              useFactory: () => new CreateWallet(orm.em),
             },
           ],
         }),
