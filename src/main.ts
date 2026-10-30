@@ -68,7 +68,7 @@ class AppModule {
                       ],
                     },
                     {
-                      table: "wager_transactions",
+                      table: "wagering_transactions",
                       columns: [
                         "id",
                         "provider_id",
@@ -77,7 +77,7 @@ class AppModule {
                         "external_transaction_id",
                         "idempotency_key",
                         "payload_hash",
-                        "type",
+                        "kind",
                         "status",
                         "amount",
                         "currency",
