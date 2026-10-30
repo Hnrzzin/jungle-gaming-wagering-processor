@@ -39,12 +39,12 @@ A API fica disponível em `http://localhost:3000/api`.
 
 `roundId` e `gameId` são opcionais nesta versão do fluxo BET. Quando enviados, são incluídos no hash idempotente e persistidos.\n\n### Exemplo de BET
 
-O header `Idempotency-Key` é obrigatório.
+Os headers `Authorization: Bearer <WAGER_API_TOKEN>` e `Idempotency-Key` são obrigatórios.
 
 ```http
 POST /api/wagers/bets
 Content-Type: application/json
-Idempotency-Key: bet-000001
+Authorization: Bearer valor-configurado-em-WAGER_API_TOKEN\nIdempotency-Key: bet-000001
 
 {
   "providerId": "provider-1",
@@ -58,7 +58,7 @@ Idempotency-Key: bet-000001
 }
 ```
 
-### Criar carteira\n\n`playerId` deve ser um UUID, pois a coluna persistida usa esse tipo.\n\n```http\nPOST /api/wallets\nContent-Type: application/json\nX-Wallet-Provisioning-Token: valor-configurado-em-WALLET_PROVISIONING_TOKEN\n\n{\n  "playerId": "UUID-DO-JOGADOR",\n  "initialBalance": "100.00",\n  "currency": "BRL"\n}\n```\n\nA criação grava carteira, transação de abertura e crédito inicial no ledger na mesma transação. O endpoint exige `WALLET_PROVISIONING_TOKEN`; sem esse segredo configurado, o provisionamento é negado. Use o `walletId` retornado na requisição de BET.\n\n**Segurança:** o endpoint de BET ainda não implementa autenticação de provider. Execute somente em rede confiável ou atrás de um gateway autenticado até adicionar autenticação por provider.
+### Criar carteira\n\n`playerId` deve ser um UUID, pois a coluna persistida usa esse tipo.\n\n```http\nPOST /api/wallets\nContent-Type: application/json\nX-Wallet-Provisioning-Token: valor-configurado-em-WALLET_PROVISIONING_TOKEN\n\n{\n  "playerId": "UUID-DO-JOGADOR",\n  "initialBalance": "100.00",\n  "currency": "BRL"\n}\n```\n\nA criação grava carteira, transação de abertura e crédito inicial no ledger na mesma transação. O endpoint exige `WALLET_PROVISIONING_TOKEN`; sem esse segredo configurado, o provisionamento é negado. Use o `walletId` retornado na requisição de BET.\n\n**Segurança:** BET exige um bearer token compartilhado (`WAGER_API_TOKEN`). Para produção, substitua o segredo compartilhado por autenticação por provider, rotação de credenciais e autorização por escopo.
 
 ## Comandos
 
