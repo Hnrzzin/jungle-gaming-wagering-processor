@@ -22,6 +22,9 @@ import {
   POSTGRES_PROCESS_WAGER_SCHEMA,
 } from "./infrastructure/database/postgres-process-wager.schema";
 import { WagerHttpModule } from "./presentation/http/wager-http.module";
+import { PostgreSQLSchemaValidator } from "./infrastructure/database/postgres-schema-validator";
+import { PostgreSQLIndexValidator } from "./infrastructure/database/postgres-index-validator";
+import { MikroOrmPostgreSQLTransactionProvider } from "./infrastructure/database/mikro-orm-transaction-provider";
 
 class OrmLifecycle implements OnApplicationShutdown {
   constructor(private readonly orm: MikroORM) {}
@@ -45,6 +48,62 @@ class AppModule {
               name: "postgres",
               check: async () => {
                 await orm.em.getConnection().execute("SELECT 1");
+              },
+            },
+            {
+              name: "postgres-schema",
+              check: async () => {
+                const transactionProvider =
+                  new MikroOrmPostgreSQLTransactionProvider(entityManager);
+
+                await transactionProvider.transaction(async (connection) => {
+                  await new PostgreSQLSchemaValidator(connection, [
+                    {
+                      table: "wallets",
+                      columns: [
+                        "id",
+                        "player_id",
+                        "currency",
+                        "balance",
+                        "version",
+                      ],
+                    },
+                    {
+                      table: "wager_transactions",
+                      columns: [
+                        "id",
+                        "provider_id",
+                        "player_id",
+                        "wallet_id",
+                        "external_transaction_id",
+                        "idempotency_key",
+                        "payload_hash",
+                        "type",
+                        "status",
+                        "amount",
+                        "currency",
+                        "failure_code",
+                        "created_at",
+                      ],
+                    },
+                    {
+                      table: "wallet_ledger_entries",
+                      columns: [
+                        "id",
+                        "wallet_id",
+                        "transaction_id",
+                        "direction",
+                        "amount",
+                        "currency",
+                        "balance_before",
+                        "balance_after",
+                        "created_at",
+                      ],
+                    },
+                  ]).validate();
+
+                  await new PostgreSQLIndexValidator(connection).validate();
+                });
               },
             },
           ],
