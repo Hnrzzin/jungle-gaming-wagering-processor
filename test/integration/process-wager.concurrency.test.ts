@@ -274,6 +274,8 @@ integrationDescribe(
           external_transaction_id TEXT NOT NULL,
           idempotency_key TEXT NOT NULL,
           payload_hash TEXT NOT NULL,
+          round_id TEXT NULL,
+          game_id TEXT NULL,
           type TEXT NOT NULL,
           status TEXT NOT NULL,
           amount NUMERIC(20, 2) NOT NULL,
@@ -319,6 +321,10 @@ integrationDescribe(
 
       schema = {
         ...DEFAULT_PROCESS_WAGER_SCHEMA,
+        wagerTransaction: {
+          ...DEFAULT_PROCESS_WAGER_SCHEMA.wagerTransaction,
+          type: "type",
+        },
         tables: {
           wallets: `${schemaName}.wallets`,
           wagerTransactions: `${schemaName}.wager_transactions`,
