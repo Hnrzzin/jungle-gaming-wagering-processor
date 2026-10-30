@@ -7,7 +7,7 @@ import {
   type WagerTransactionState,
 } from "../../domain/wager-transaction";
 import { Money } from "../../domain/money";
-
+import { FailureCode } from "../../domain/failure-code";
 export class WagerTransactionRepository {
   constructor(private readonly em: EntityManager) {}
 
@@ -28,9 +28,10 @@ export class WagerTransactionRepository {
         amount,
         currency,
         created_at,
-        processed_at
+        processed_at,
+        failure_code
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
     `;
 
     await this.em.execute(sql, [
@@ -49,6 +50,7 @@ export class WagerTransactionRepository {
       transaction.money.currency,
       transaction.createdAt,
       transaction.processedAt ?? null,
+      transaction.failureCode ?? null,
     ]);
   }
 
@@ -68,7 +70,7 @@ export class WagerTransactionRepository {
       return null;
     }
 
-    return this.toDomain(rows[0] as WagerTransaction);
+    return this.toDomain(rows[0] as Record<string, any>);
   }
 
   async findByExternalTransactionId(
@@ -90,7 +92,7 @@ export class WagerTransactionRepository {
       return null;
     }
 
-    return this.toDomain(rows[0] as WagerTransaction);
+    return this.toDomain(rows[0] as Record<string, any>);
   }
 
   private toDomain(row: Record<string, any>): WagerTransaction {
@@ -114,6 +116,7 @@ export class WagerTransactionRepository {
       processedAt: row.processed_at
         ? new Date(row.processed_at)
         : undefined,
+            failureCode: row.failure_code ? (row.failure_code as FailureCode) : undefined,
     };
 
     return WagerTransaction.rehydrate(state);
