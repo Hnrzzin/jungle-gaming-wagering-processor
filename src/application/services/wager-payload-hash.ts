@@ -8,6 +8,8 @@ export interface WagerBusinessPayload {
   readonly type: "BET";
   readonly amount: string;
   readonly currency: string;
+  readonly roundId?: string;
+  readonly gameId?: string;
 }
 
 export function createWagerPayloadHash(
@@ -21,5 +23,7 @@ export function createWagerPayloadHash(
     type: payload.type,
     amount: payload.amount,
     currency: payload.currency,
+    ...(payload.roundId === undefined ? {} : { roundId: payload.roundId }),
+    ...(payload.gameId === undefined ? {} : { gameId: payload.gameId }),
   });
 }
