@@ -29,6 +29,8 @@ export interface WagerRecord extends WagerIdentity {
   readonly id: string;
   readonly playerId: string;
   readonly walletId: string;
+  readonly roundId?: string;
+  readonly gameId?: string;
   readonly payloadHash: string;
   readonly type: WagerType;
   readonly status: WagerStatus;
@@ -58,6 +60,8 @@ export interface CreateWagerRecordInput extends WagerIdentity {
   readonly id: string;
   readonly playerId: string;
   readonly walletId: string;
+  readonly roundId?: string;
+  readonly gameId?: string;
   readonly payloadHash: string;
   readonly type: WagerType;
   readonly status: WagerStatus;
@@ -120,6 +124,8 @@ export interface ProcessWagerCommand {
   readonly idempotencyKey: string;
   readonly amount: string;
   readonly currency: string;
+  readonly roundId?: string;
+  readonly gameId?: string;
 }
 
 export type ProcessWagerResult =
@@ -216,6 +222,8 @@ export class ProcessWager {
       type: "BET",
       amount: amount.amount,
       currency: amount.currency,
+      ...(command.roundId === undefined ? {} : { roundId: command.roundId }),
+      ...(command.gameId === undefined ? {} : { gameId: command.gameId }),
     };
 
     const payloadHash = createWagerPayloadHash(payload);
@@ -271,6 +279,8 @@ export class ProcessWager {
           ...identity,
           playerId: command.playerId,
           walletId: command.walletId,
+          ...(command.roundId === undefined ? {} : { roundId: command.roundId }),
+          ...(command.gameId === undefined ? {} : { gameId: command.gameId }),
           payloadHash,
           type: "BET",
           status: "REJECTED",
