@@ -8,7 +8,9 @@
   },
   "devDependencies": {
     "@mikro-orm/cli": "7.2.5",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/pg": "^8.23.1",
+    "pg": "8.23.1"
   },
   "peerDependencies": {
     "typescript": "^7"

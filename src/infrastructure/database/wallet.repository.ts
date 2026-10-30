@@ -1,6 +1,7 @@
-import { EntityManager } from '@mikro-orm/postgresql';
+import { EntityManager } from "@mikro-orm/postgresql";
 import { Wallet } from "../../domain/wallet";
-import { Money } from '../../domain/money';
+import { Money } from "../../domain/money";
+
 // Qualquer coisa que saiba rodar SQL com "?" (o em do MikroORM serve)
 export interface SqlExecutor {
   execute(query: string, params?: unknown[]): Promise<any>;
@@ -26,24 +27,32 @@ export class WalletRepository {
   }
 
   async findById(id: string): Promise<Wallet | null> {
-    const sql = `SELECT * FROM wallets WHERE id = ?`;
-    const rows = await this.em.execute(sql, [id]); // sem getConnection() pra manter a atomicidade
-
+    const rows = await this.em.execute(`SELECT * FROM wallets WHERE id = ?`, [id]);
     if (!rows || rows.length === 0) {
       return null;
     }
+    return this.toDomain(rows[0] as Record<string, any>);
+  }
 
-    const row = rows[0] as Record<string, any>;
+  // SELECT ... FOR UPDATE: trava a linha até o fim da transação atual.
+  // Use com o EntityManager da transação (tx), nunca com orm.em.
+  async findByIdForUpdate(id: string): Promise<Wallet | null> {
+    const rows = await this.em.execute(`SELECT * FROM wallets WHERE id = ? FOR UPDATE`, [id]);
+    if (!rows || rows.length === 0) {
+      return null;
+    }
+    return this.toDomain(rows[0] as Record<string, any>);
+  }
 
+  private toDomain(row: Record<string, any>): Wallet {
     return Wallet.rehydrate({
       id: row.id,
       playerId: row.player_id,
       currency: row.currency,
-      balance: Money.from({amount: String(row.balance), currency: row.currency}),
+      balance: Money.from({ amount: String(row.balance), currency: row.currency }),
       version: Number(row.version),
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     });
   }
 }
-

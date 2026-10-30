@@ -1,4 +1,3 @@
-
 import { EntityManager } from "@mikro-orm/postgresql";
 import {
   WagerTransaction,
