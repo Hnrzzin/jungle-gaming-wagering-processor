@@ -5,12 +5,15 @@ import {
   Inject,
   Post,
   Body,
+  Headers,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { CREATE_WALLET } from "../../application/tokens";
 import {
   CreateWallet,
 } from "../../application/use-cases/create-wallet";
 import { Money } from "../../domain/money";
+import { timingSafeEqual } from "node:crypto";
 
 interface CreateWalletRequest {
   readonly playerId: unknown;
@@ -26,7 +29,25 @@ export class WalletController {
   ) {}
 
   @Post()
-  async create(@Body() body: CreateWalletRequest) {
+  async create(
+    @Headers("x-wallet-provisioning-token") providedToken: string | undefined,
+    @Body() body: CreateWalletRequest,
+  ) {
+    const configuredToken = process.env.WALLET_PROVISIONING_TOKEN;
+    const expected = Buffer.from(configuredToken ?? "");
+    const provided = Buffer.from(providedToken ?? "");
+    const authorized =
+      expected.length > 0 &&
+      expected.length === provided.length &&
+      timingSafeEqual(expected, provided);
+
+    if (!authorized) {
+      throw new UnauthorizedException({
+        code: "WALLET_PROVISIONING_UNAUTHORIZED",
+        message: "A valid wallet provisioning token is required",
+      });
+    }
+
     if (typeof body !== "object" || body === null) {
       throw new BadRequestException({
         code: "INVALID_REQUEST",
