@@ -9,12 +9,24 @@ export class Migration20261030120000 extends Migration {
         ADD COLUMN IF NOT EXISTS currency VARCHAR(3);
     `);
 
+    // The previous migration protects ledger rows with an immutable trigger.
+    // Temporarily disable that trigger for this one-time metadata backfill.
+    this.addSql(`
+      ALTER TABLE wallet_ledger_entries
+        DISABLE TRIGGER wallet_ledger_entries_no_update_delete;
+    `);
+
     this.addSql(`
       UPDATE wallet_ledger_entries AS ledger
       SET currency = wallets.currency
       FROM wallets
       WHERE ledger.wallet_id = wallets.id
         AND ledger.currency IS NULL;
+    `);
+
+    this.addSql(`
+      ALTER TABLE wallet_ledger_entries
+        ENABLE TRIGGER wallet_ledger_entries_no_update_delete;
     `);
 
     // Older domain repositories omit currency in ledger INSERT statements.
