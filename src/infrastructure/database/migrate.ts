@@ -4,7 +4,7 @@ async function migrate(): Promise<void> {
   const orm = await createOrm();
 
   try {
-    const migrations = await orm.getMigrator().up();
+    const migrations = await orm.migrator.up();
     console.info(
       migrations.length === 0
         ? "Database schema is already up to date."
