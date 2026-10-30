@@ -51,6 +51,8 @@ export interface ProcessWagerDatabaseSchema {
     readonly externalTransactionId: string;
     readonly idempotencyKey: string;
     readonly payloadHash: string;
+    readonly roundId: string;
+    readonly gameId: string;
     readonly type: string;
     readonly status: string;
     readonly amount: string;
@@ -90,6 +92,8 @@ export const DEFAULT_PROCESS_WAGER_SCHEMA: ProcessWagerDatabaseSchema = {
     externalTransactionId: "external_transaction_id",
     idempotencyKey: "idempotency_key",
     payloadHash: "payload_hash",
+    roundId: "round_id",
+    gameId: "game_id",
     type: "kind",
     status: "status",
     amount: "amount",
@@ -210,6 +214,8 @@ export class PostgreSQLProcessWagerUnitOfWork
         ${quoteIdentifier(columns.externalTransactionId)} AS external_transaction_id,
         ${quoteIdentifier(columns.idempotencyKey)} AS idempotency_key,
         ${quoteIdentifier(columns.payloadHash)} AS payload_hash,
+        ${quoteIdentifier(columns.roundId)} AS round_id,
+        ${quoteIdentifier(columns.gameId)} AS game_id,
         ${quoteIdentifier(columns.type)} AS type,
         ${quoteIdentifier(columns.status)} AS status,
         ${quoteIdentifier(columns.amount)} AS amount,
@@ -313,14 +319,9 @@ export class PostgreSQLProcessWagerUnitOfWork
       columns.externalTransactionId,
       columns.idempotencyKey,
       columns.payloadHash,
-      columns.type,
-      columns.status,
-      columns.amount,
-      columns.currency,
-      columns.failureCode,
     ];
 
-    const values = [
+    const values: unknown[] = [
       record.id,
       record.providerId,
       record.playerId,
@@ -328,12 +329,32 @@ export class PostgreSQLProcessWagerUnitOfWork
       record.externalTransactionId,
       record.idempotencyKey,
       record.payloadHash,
+    ];
+
+    if (record.roundId !== undefined) {
+      columnNames.push(columns.roundId);
+      values.push(record.roundId);
+    }
+
+    if (record.gameId !== undefined) {
+      columnNames.push(columns.gameId);
+      values.push(record.gameId);
+    }
+
+    columnNames.push(
+      columns.type,
+      columns.status,
+      columns.amount,
+      columns.currency,
+      columns.failureCode,
+    );
+    values.push(
       record.type,
       record.status,
       record.amount.amount,
       record.amount.currency,
       record.failureCode,
-    ];
+    );
 
     const quotedColumns = columnNames.map(quoteIdentifier).join(", ");
     const placeholders = values
@@ -427,6 +448,8 @@ export class PostgreSQLProcessWagerUnitOfWork
   ): WagerRecord {
     const amountCurrency = requiredString(row, "currency");
     const failureCode = nullableString(row, "failure_code");
+    const roundId = nullableString(row, "round_id");
+    const gameId = nullableString(row, "game_id");
     const type = requiredString(row, "type");
     const status = requiredString(row, "status");
 
@@ -450,6 +473,8 @@ export class PostgreSQLProcessWagerUnitOfWork
       providerId: requiredString(row, "provider_id"),
       playerId: requiredString(row, "player_id"),
       walletId: requiredString(row, "wallet_id"),
+      ...(roundId === null ? {} : { roundId }),
+      ...(gameId === null ? {} : { gameId }),
       externalTransactionId: requiredString(
         row,
         "external_transaction_id",
