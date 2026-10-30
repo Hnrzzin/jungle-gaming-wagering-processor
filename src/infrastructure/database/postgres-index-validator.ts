@@ -55,7 +55,7 @@ export class PostgreSQLIndexValidator {
       `SELECT indexname AS index_name
        FROM pg_indexes
        WHERE schemaname = current_schema()
-         AND indexname = ANY($1::text[])`,
+         AND indexname = ANY(ARRAY[$1]::text[])`,
       [names],
     );
 

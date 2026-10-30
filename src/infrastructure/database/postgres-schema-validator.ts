@@ -45,7 +45,7 @@ export class PostgreSQLSchemaValidator {
       `SELECT table_name
        FROM information_schema.tables
        WHERE table_schema = current_schema()
-         AND table_name = ANY($1::text[])`,
+         AND table_name = ANY(ARRAY[$1]::text[])`,
       [requiredTables],
     );
 
@@ -72,7 +72,7 @@ export class PostgreSQLSchemaValidator {
       `SELECT table_name, column_name
        FROM information_schema.columns
        WHERE table_schema = current_schema()
-         AND table_name = ANY($1::text[])`,
+         AND table_name = ANY(ARRAY[$1]::text[])`,
       [requiredTables],
     );
 
