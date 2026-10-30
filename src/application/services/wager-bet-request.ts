@@ -33,7 +33,11 @@ function requireString(value: unknown, field: string): string {
 export function parseWagerBetRequest(
   body: WagerBetRequestBody,
   idempotencyKeyHeader: string | undefined,
-): ProcessWagerCommand {
+ ): ProcessWagerCommand {
+  if (typeof body !== "object" || body === null) {
+    throw new InvalidWagerBetRequestError("request body must be a JSON object");
+  }
+
   let idempotencyKey: string;
 
   try {
