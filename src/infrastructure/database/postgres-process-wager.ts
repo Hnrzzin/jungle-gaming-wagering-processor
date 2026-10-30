@@ -249,6 +249,8 @@ export class PostgreSQLProcessWagerUnitOfWork
         ${quoteIdentifier(columns.externalTransactionId)} AS external_transaction_id,
         ${quoteIdentifier(columns.idempotencyKey)} AS idempotency_key,
         ${quoteIdentifier(columns.payloadHash)} AS payload_hash,
+        ${quoteIdentifier(columns.roundId)} AS round_id,
+        ${quoteIdentifier(columns.gameId)} AS game_id,
         ${quoteIdentifier(columns.type)} AS type,
         ${quoteIdentifier(columns.status)} AS status,
         ${quoteIdentifier(columns.amount)} AS amount,
