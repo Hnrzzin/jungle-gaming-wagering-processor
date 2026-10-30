@@ -66,7 +66,7 @@ export function parseWagerBetRequest(
     );
   }
 
-  if (!/^\d+\.\d{2}$/.test(amount)) {
+  if (!/^\d{1,17}\.\d{2}$/.test(amount)) {
     throw new InvalidWagerBetRequestError(
       "amount must use the decimal format 0.00",
     );
