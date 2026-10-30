@@ -27,7 +27,7 @@ export const PROCESS_WAGER_UNIQUE_INDEXES: readonly UniqueIndexRequirement[] = [
   },
   {
     name: "wagering_transactions_provider_external_key",
-    table: "wager_transactions",
+    table: "wagering_transactions",
     columns: ["provider_id", "external_transaction_id"],
   },
   {
