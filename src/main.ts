@@ -1,0 +1,99 @@
+import "reflect-metadata";
+
+import {
+  type DynamicModule,
+  Module,
+  type OnApplicationShutdown,
+} from "@nestjs/common";
+import { NestFactory } from "@nestjs/core";
+import type { MikroORM } from "@mikro-orm/postgresql";
+import {
+  WAGER_TRANSACTION_MANAGER,
+} from "./application/tokens";
+import { createOrm } from "./infrastructure/database/orm";
+import {
+  MikroOrmPostgreSQLTransactionProvider,
+  type MikroOrmEntityManagerLike,
+} from "./infrastructure/database/mikro-orm-transaction-provider";
+import {
+  PostgreSQLProcessWagerTransactionManager,
+} from "./infrastructure/database/postgres-process-wager";
+import {
+  POSTGRES_PROCESS_WAGER_SCHEMA,
+} from "./infrastructure/database/postgres-process-wager.schema";
+import { WagerHttpModule } from "./presentation/http/wager-http.module";
+
+class OrmLifecycle implements OnApplicationShutdown {
+  constructor(private readonly orm: MikroORM) {}
+
+  async onApplicationShutdown(): Promise<void> {
+    await this.orm.close();
+  }
+}
+
+@Module({})
+class AppModule {
+  static register(orm: MikroORM): DynamicModule {
+    const entityManager = orm.em as unknown as MikroOrmEntityManagerLike;
+
+    return {
+      module: AppModule,
+      imports: [
+        WagerHttpModule.register({
+          healthChecks: [
+            {
+              name: "postgres",
+              check: async () => {
+                await orm.em.getConnection().execute("SELECT 1");
+              },
+            },
+          ],
+          extraProviders: [
+            {
+              provide: WAGER_TRANSACTION_MANAGER,
+              useFactory: () =>
+                new PostgreSQLProcessWagerTransactionManager(
+                  new MikroOrmPostgreSQLTransactionProvider(entityManager),
+                  POSTGRES_PROCESS_WAGER_SCHEMA,
+                ),
+            },
+          ],
+        }),
+      ],
+      providers: [
+        {
+          provide: OrmLifecycle,
+          useFactory: () => new OrmLifecycle(orm),
+        },
+      ],
+    };
+  }
+}
+
+async function bootstrap(): Promise<void> {
+  const orm = await createOrm();
+
+  try {
+    const app = await NestFactory.create(AppModule.register(orm), {
+      bufferLogs: true,
+    });
+
+    app.enableShutdownHooks();
+    app.setGlobalPrefix("api");
+    app.enableCors();
+
+    const port = Number(process.env.PORT ?? 3000);
+    const host = process.env.HOST ?? "0.0.0.0";
+
+    await app.listen(port, host);
+    console.info(`Wagering Processor listening on http://${host}:${port}/api`);
+  } catch (error) {
+    await orm.close();
+    throw error;
+  }
+}
+
+void bootstrap().catch((error: unknown) => {
+  console.error("Failed to start Wagering Processor", error);
+  process.exitCode = 1;
+});
