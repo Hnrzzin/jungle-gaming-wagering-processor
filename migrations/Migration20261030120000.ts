@@ -67,6 +67,12 @@ export class Migration20261030120000 extends Migration {
 
     this.addSql(`
       ALTER TABLE wagering_transactions
+        ADD COLUMN IF NOT EXISTS round_id VARCHAR(128),
+        ADD COLUMN IF NOT EXISTS game_id VARCHAR(128);
+    `);
+
+    this.addSql(`
+      ALTER TABLE wagering_transactions
         ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
         ALTER COLUMN round_id DROP NOT NULL,
         ALTER COLUMN game_id DROP NOT NULL;
@@ -90,7 +96,9 @@ export class Migration20261030120000 extends Migration {
 
     this.addSql(`
       ALTER TABLE wagering_transactions
-        ALTER COLUMN created_at DROP DEFAULT;
+        ALTER COLUMN created_at DROP DEFAULT,
+        DROP COLUMN IF EXISTS round_id,
+        DROP COLUMN IF EXISTS game_id;
     `);
 
     this.addSql(`
