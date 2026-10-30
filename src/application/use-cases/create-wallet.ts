@@ -1,21 +1,18 @@
-import { randomUUIDv7 } from "bun";
-import { createHash } from "node:crypto";
+
+import { createHash, randomUUID } from "node:crypto";
 import { EntityManager } from "@mikro-orm/postgresql";
 
 import { Money } from "../../domain/money";
-import { Wallet } from "../../domain/wallet";
 import {
   WagerTransaction,
   WagerTransactionKind,
 } from "../../domain/wager-transaction";
-import {
-  LedgerDirection,
-  WalletLedgerEntry,
-} from "../../domain/wallet-ledger-entry";
+import { LedgerDirection, WalletLedgerEntry } from "../../domain/wallet-ledger-entry";
+import { Wallet } from "../../domain/wallet";
 
 import { WalletRepository } from "../../infrastructure/database/wallet.repository";
-import { LedgerRepository } from "../../infrastructure/database/ledger.repository";
 import { WagerTransactionRepository } from "../../infrastructure/database/wager-transaction.repository";
+import { LedgerRepository } from "../../infrastructure/database/ledger.repository";
 
 export interface CreateWalletInput {
   playerId: string;
@@ -26,57 +23,51 @@ export class CreateWallet {
   constructor(private readonly em: EntityManager) {}
 
   async execute(input: CreateWalletInput): Promise<Wallet> {
-    // Toda a operação acontece em uma única transação PostgreSQL.
-    return this.em.transactional(async (tx) => {
-      const now = new Date();
+    const walletId = randomUUID();
+    const now = new Date();
 
-      // 1. Cria a carteira já com o saldo inicial.
-      const wallet = Wallet.open({
-        id: randomUUIDv7(),
-        playerId: input.playerId,
-        initialBalance: input.initialBalance,
-      });
+    const wallet = Wallet.open({
+      id: walletId,
+      playerId: input.playerId,
+      initialBalance: input.initialBalance,
+    });
 
-      const walletRepository = new WalletRepository(tx);
-      const transactionRepository = new WagerTransactionRepository(tx);
-      const ledgerRepository = new LedgerRepository(tx);
+    await this.em.transactional(async (txEm) => {
+      const walletRepository = new WalletRepository(txEm);
+      const transactionRepository = new WagerTransactionRepository(txEm);
+      const ledgerRepository = new LedgerRepository(txEm);
 
-      // 2. Persiste a carteira.
       await walletRepository.insert(wallet);
 
-      // Saldo zero não exige transação OPENING nem lançamento no ledger.
+      // Saldo zero não exige transação OPENING nem lançamento.
       if (input.initialBalance.isZero()) {
-        return wallet;
+        return;
       }
 
-      // 3. Gera identificadores internos exclusivos para a abertura.
-      const transactionId = randomUUIDv7();
-      const openingKey = `opening:${wallet.id}`;
+      const openingId = randomUUID();
 
-      // O hash representa os dados relevantes da operação de abertura.
+      const openingPayload = JSON.stringify({
+        walletId,
+        playerId: input.playerId,
+        amount: input.initialBalance.toString(),
+        currency: input.initialBalance.currency,
+        kind: WagerTransactionKind.Opening,
+      });
+
       const payloadHash = createHash("sha256")
-        .update(
-          JSON.stringify({
-            walletId: wallet.id,
-            playerId: wallet.playerId,
-            kind: WagerTransactionKind.Opening,
-            amount: input.initialBalance.toString(),
-            currency: input.initialBalance.currency,
-          }),
-        )
+        .update(openingPayload)
         .digest("hex");
 
-      // 4. Cria a transação interna já concluída.
       const openingTransaction = WagerTransaction.createOpening({
-        id: transactionId,
-        providerId: "system",
-        externalTransactionId: openingKey,
-        idempotencyKey: openingKey,
+        id: openingId,
+        providerId: "internal",
+        externalTransactionId: openingId,
+        idempotencyKey: `opening:${walletId}`,
         payloadHash,
-        walletId: wallet.id,
-        playerId: wallet.playerId,
-        roundId: "opening",
-        gameId: "opening",
+        walletId,
+        playerId: input.playerId,
+        roundId: "internal",
+        gameId: "internal",
         kind: WagerTransactionKind.Opening,
         money: input.initialBalance,
         createdAt: now,
@@ -84,22 +75,100 @@ export class CreateWallet {
 
       await transactionRepository.insert(openingTransaction);
 
-      // 5. Registra contabilmente o saldo inicial.
-      // A carteira já nasceu com esse saldo: não devemos creditá-la novamente.
-      const openingEntry = WalletLedgerEntry.create({
-        id: randomUUIDv7(),
-        walletId: wallet.id,
-        transactionId: transactionId,
-        createdAt: now,
+      // A carteira já nasce com o saldo inicial.
+      // Portanto, apenas registramos o crédito no ledger.
+      const ledgerEntry = WalletLedgerEntry.create({
+        id: randomUUID(),
+        walletId,
+        transactionId: openingId,
         direction: LedgerDirection.Credit,
         money: input.initialBalance,
         balanceBefore: Money.zero(input.initialBalance.currency),
         balanceAfter: input.initialBalance,
+        createdAt: now,
       });
 
-      await ledgerRepository.append(openingEntry);
-
-      return wallet;
+      await ledgerRepository.append(ledgerEntry);
     });
+
+    return wallet;
   }
+}
+
+export interface ClassifyWagerRequest {
+  providerId: string;
+  idempotencyKey: string;
+  externalTransactionId: string;
+  payloadHash: string;
+}
+
+export interface WagerTransactionLookupRepository {
+  findByIdempotencyKey(
+    providerId: string,
+    idempotencyKey: string,
+  ): Promise<WagerTransaction | null>;
+
+  findByExternalTransactionId(
+    providerId: string,
+    externalTransactionId: string,
+  ): Promise<WagerTransaction | null>;
+}
+
+export type WagerRequestClassification =
+  | { outcome: "NEW"; transaction: null }
+  | { outcome: "DUPLICATE"; transaction: WagerTransaction }
+  | { outcome: "CONFLICT"; transaction: WagerTransaction | null };
+
+export async function classifyWagerRequest(
+  repository: WagerTransactionLookupRepository,
+  request: ClassifyWagerRequest,
+): Promise<WagerRequestClassification> {
+  const [byKey, byExternal] = await Promise.all([
+    repository.findByIdempotencyKey(
+      request.providerId,
+      request.idempotencyKey,
+    ),
+    repository.findByExternalTransactionId(
+      request.providerId,
+      request.externalTransactionId,
+    ),
+  ]);
+
+  // Nenhum identificador foi encontrado: é uma nova requisição.
+  if (!byKey && !byExternal) {
+    return {
+      outcome: "NEW",
+      transaction: null,
+    };
+  }
+
+  // Apenas um identificador encontrado: os dados divergem.
+  if (!byKey || !byExternal) {
+    return {
+      outcome: "CONFLICT",
+      transaction: byKey ?? byExternal,
+    };
+  }
+
+  // Os identificadores apontam para transações diferentes.
+  if (byKey.id !== byExternal.id) {
+    return {
+      outcome: "CONFLICT",
+      transaction: null,
+    };
+  }
+
+  // Mesmo registro, mas conteúdo diferente.
+  if (!byKey.matchesPayload(request.payloadHash)) {
+    return {
+      outcome: "CONFLICT",
+      transaction: byKey,
+    };
+  }
+
+  // Mesmo registro e mesmo payload: duplicata legítima.
+  return {
+    outcome: "DUPLICATE",
+    transaction: byKey,
+  };
 }
