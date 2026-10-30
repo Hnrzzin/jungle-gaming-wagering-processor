@@ -1,3 +1,4 @@
+import { APP_FILTER } from "@nestjs/core";
 import {
   type DynamicModule,
   Module,
@@ -39,7 +40,7 @@ export class WagerHttpModule {
         },
         ...defaultProcessWagerProviders,
         ...(options.extraProviders ?? []),
-        HttpErrorFilter,
+        { provide: APP_FILTER, useClass: HttpErrorFilter },
       ],
       exports: [],
     };
