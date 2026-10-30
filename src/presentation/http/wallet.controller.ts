@@ -46,7 +46,7 @@ export class WalletController {
 
     if (
       typeof body.initialBalance !== "string" ||
-      !/^\d+\.\d{2}$/.test(body.initialBalance)
+      !/^\d{1,17}\.\d{2}$/.test(body.initialBalance)
     ) {
       throw new BadRequestException({
         code: "INVALID_INITIAL_BALANCE",
