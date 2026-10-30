@@ -79,6 +79,8 @@ class AppModule {
                         "external_transaction_id",
                         "idempotency_key",
                         "payload_hash",
+                        "round_id",
+                        "game_id",
                         "kind",
                         "status",
                         "amount",
