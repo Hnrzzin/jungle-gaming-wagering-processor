@@ -72,7 +72,7 @@ export interface ProcessWagerDatabaseSchema {
 export const DEFAULT_PROCESS_WAGER_SCHEMA: ProcessWagerDatabaseSchema = {
   tables: {
     wallets: "wallets",
-    wagerTransactions: "wager_transactions",
+    wagerTransactions: "wagering_transactions",
     ledgerEntries: "wallet_ledger_entries",
   },
   wallet: {
@@ -90,7 +90,7 @@ export const DEFAULT_PROCESS_WAGER_SCHEMA: ProcessWagerDatabaseSchema = {
     externalTransactionId: "external_transaction_id",
     idempotencyKey: "idempotency_key",
     payloadHash: "payload_hash",
-    type: "type",
+    type: "kind",
     status: "status",
     amount: "amount",
     currency: "currency",
