@@ -24,7 +24,6 @@ import {
 import { WagerHttpModule } from "./presentation/http/wager-http.module";
 import { PostgreSQLSchemaValidator } from "./infrastructure/database/postgres-schema-validator";
 import { PostgreSQLIndexValidator } from "./infrastructure/database/postgres-index-validator";
-import { MikroOrmPostgreSQLTransactionProvider } from "./infrastructure/database/mikro-orm-transaction-provider";
 
 class OrmLifecycle implements OnApplicationShutdown {
   constructor(private readonly orm: MikroORM) {}
