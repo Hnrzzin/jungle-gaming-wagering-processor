@@ -15,6 +15,7 @@ import type {
 import { HealthController } from "./health.controller";
 import { HttpErrorFilter } from "./http-error.filter";
 import { WagerController } from "./wager.controller";
+import { WalletController } from "./wallet.controller";
 
 export interface WagerHttpModuleOptions {
   readonly healthChecks?: HealthCheck[];
@@ -28,6 +29,7 @@ export class WagerHttpModule {
       module: WagerHttpModule,
       controllers: [
         WagerController,
+        WalletController,
         HealthController,
       ],
       providers: [
