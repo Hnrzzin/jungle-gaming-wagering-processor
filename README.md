@@ -34,6 +34,7 @@ A API fica disponível em `http://localhost:3000/api`.
 
 - `GET /api/health/live`: liveness.
 - `GET /api/health/ready`: readiness, incluindo conexão PostgreSQL.
+- `POST /api/wallets`: provisionamento de carteira com saldo inicial e lançamento de abertura.
 - `POST /api/wagers/bets`: processamento síncrono de BET.
 
 ### Exemplo de BET
@@ -55,7 +56,7 @@ Idempotency-Key: bet-000001
 }
 ```
 
-A carteira precisa existir previamente em `wallets`, com `player_id` igual ao jogador informado e moeda compatível. A criação/provisionamento de carteiras deve ser feita pelo serviço responsável pelo ciclo de vida da wallet; este serviço não deve criar saldo implicitamente ao receber uma aposta.
+### Criar carteira\n\n`playerId` deve ser um UUID, pois a coluna persistida usa esse tipo.\n\n```http\nPOST /api/wallets\nContent-Type: application/json\n\n{\n  "playerId": "UUID-DO-JOGADOR",\n  "initialBalance": "100.00",\n  "currency": "BRL"\n}\n```\n\nA criação grava carteira, transação de abertura e crédito inicial no ledger na mesma transação. Use o `walletId` retornado na requisição de BET.
 
 ## Comandos
 
