@@ -1,3 +1,4 @@
+import { Migrator } from "@mikro-orm/migrations";
 import { defineConfig, MikroORM } from '@mikro-orm/postgresql';
 
 
@@ -20,6 +21,7 @@ export async function createOrm(): Promise<MikroORM> {
         host,
         port,
         discovery: { warnWhenNoEntities: false },
+        extensions: [Migrator],
         migrations: {
           path: "./migrations",
           pathTs: "./migrations",
