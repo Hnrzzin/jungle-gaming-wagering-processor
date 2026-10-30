@@ -64,6 +64,16 @@ export class WagerController {
 
     try {
       command = parseWagerBetRequest(body, idempotencyKey);
+
+      const uuidPattern =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+      if (!uuidPattern.test(command.playerId) || !uuidPattern.test(command.walletId)) {
+        throw new BadRequestException({
+          code: "INVALID_WALLET_REFERENCE",
+          message: "playerId and walletId must be valid UUIDs",
+        });
+      }
     } catch (error) {
       if (error instanceof InvalidWagerBetRequestError) {
         throw new BadRequestException({
