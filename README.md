@@ -37,7 +37,7 @@ A API fica disponível em `http://localhost:3000/api`.
 - `POST /api/wallets`: provisionamento de carteira com saldo inicial e lançamento de abertura.
 - `POST /api/wagers/bets`: processamento síncrono de BET.
 
-### Exemplo de BET
+`roundId` e `gameId` são opcionais nesta versão do fluxo BET. Quando enviados, são incluídos no hash idempotente e persistidos.\n\n### Exemplo de BET
 
 O header `Idempotency-Key` é obrigatório.
 
@@ -52,7 +52,9 @@ Idempotency-Key: bet-000001
   "walletId": "UUID-DA-CARTEIRA",
   "externalTransactionId": "external-bet-000001",
   "amount": "10.00",
-  "currency": "BRL"
+  "currency": "BRL",
+  "roundId": "round-0001",
+  "gameId": "game-0001"
 }
 ```
 
