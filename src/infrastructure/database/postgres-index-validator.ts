@@ -22,7 +22,7 @@ export class PostgreSQLIndexValidationError extends Error {
 export const PROCESS_WAGER_UNIQUE_INDEXES: readonly UniqueIndexRequirement[] = [
   {
     name: "wagering_transactions_provider_idempotency_key",
-    table: "wager_transactions",
+    table: "wagering_transactions",
     columns: ["provider_id", "idempotency_key"],
   },
   {
