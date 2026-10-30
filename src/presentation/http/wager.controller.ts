@@ -8,6 +8,7 @@ import {
   NotFoundException,
   Post,
   UnprocessableEntityException,
+  UnauthorizedException,
   Headers,
   Body,
 } from "@nestjs/common";
@@ -25,6 +26,7 @@ import {
   type WagerBetRequestBody,
 } from "../../application/services/wager-bet-request";
 import { mapWagerResult } from "../../application/services/wager-result-mapper";
+import { timingSafeEqual } from "node:crypto";
 
 @Controller("wagers")
 export class WagerController {
@@ -38,7 +40,26 @@ export class WagerController {
   async createBet(
     @Headers("idempotency-key") idempotencyKey: string | undefined,
     @Body() body: WagerBetRequestBody,
+    @Headers("authorization") authorization: string | undefined,
   ) {
+    const configuredToken = process.env.WAGER_API_TOKEN;
+    const providedToken = authorization?.startsWith("Bearer ")
+      ? authorization.slice(7)
+      : "";
+    const expected = Buffer.from(configuredToken ?? "");
+    const provided = Buffer.from(providedToken);
+    const authorized =
+      expected.length > 0 &&
+      expected.length === provided.length &&
+      timingSafeEqual(expected, provided);
+
+    if (!authorized) {
+      throw new UnauthorizedException({
+        code: "WAGER_UNAUTHORIZED",
+        message: "A valid provider API token is required",
+      });
+    }
+
     let command;
 
     try {
