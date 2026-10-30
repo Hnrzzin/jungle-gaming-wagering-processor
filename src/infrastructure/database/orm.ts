@@ -20,6 +20,11 @@ export async function createOrm(): Promise<MikroORM> {
         host,
         port,
         discovery: { warnWhenNoEntities: false },
+        migrations: {
+          path: "./migrations",
+          pathTs: "./migrations",
+          glob: "!(*.d).{js,ts}",
+        },
         //entities: ['./dist/entities/**/*.js'],
         //entitiesTs: ['./src/entities/**/*.ts'],
     });
