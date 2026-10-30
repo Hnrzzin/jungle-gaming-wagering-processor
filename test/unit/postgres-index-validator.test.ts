@@ -48,7 +48,7 @@ describe("PostgreSQLIndexValidator", () => {
       rows: [
         {
           index_name:
-            "wager_transactions_provider_idempotency_unique",
+            "wagering_transactions_provider_idempotency_key",
         },
       ],
       rowCount: 1,
@@ -71,8 +71,8 @@ describe("PostgreSQLIndexValidator", () => {
     expect(
       (captured as PostgreSQLIndexValidationError).missingIndexes,
     ).toEqual([
-      "wager_transactions_provider_external_unique",
-      "wallet_ledger_entries_wallet_transaction_unique",
+      "wagering_transactions_provider_external_key",
+      "wallet_ledger_entries_wallet_transaction_key",
     ]);
   });
 });
