@@ -11,6 +11,8 @@ export interface WagerBetRequestBody {
   readonly externalTransactionId: unknown;
   readonly amount: unknown;
   readonly currency: unknown;
+  readonly roundId?: unknown;
+  readonly gameId?: unknown;
 }
 
 export class InvalidWagerBetRequestError extends Error {
@@ -66,6 +68,16 @@ export function parseWagerBetRequest(
     );
   }
 
+  const roundId = body.roundId === undefined ? undefined : requireString(body.roundId, "roundId");
+  const gameId = body.gameId === undefined ? undefined : requireString(body.gameId, "gameId");
+
+  if (roundId !== undefined && roundId.length > 128) {
+    throw new InvalidWagerBetRequestError("roundId exceeds 128 characters");
+  }
+  if (gameId !== undefined && gameId.length > 128) {
+    throw new InvalidWagerBetRequestError("gameId exceeds 128 characters");
+  }
+
   return {
     providerId,
     playerId,
@@ -74,5 +86,7 @@ export function parseWagerBetRequest(
     idempotencyKey,
     amount,
     currency,
+    ...(roundId === undefined ? {} : { roundId }),
+    ...(gameId === undefined ? {} : { gameId }),
   };
 }
