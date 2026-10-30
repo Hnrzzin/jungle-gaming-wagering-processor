@@ -23,6 +23,8 @@ export const POSTGRES_PROCESS_WAGER_SCHEMA: ProcessWagerDatabaseSchema = {
     externalTransactionId: "external_transaction_id",
     idempotencyKey: "idempotency_key",
     payloadHash: "payload_hash",
+    roundId: "round_id",
+    gameId: "game_id",
     type: "kind",
     status: "status",
     amount: "amount",
