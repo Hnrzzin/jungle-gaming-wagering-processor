@@ -1,4 +1,5 @@
 export const PROCESS_WAGER = Symbol("PROCESS_WAGER");
+export const CREATE_WALLET = Symbol("CREATE_WALLET");
 export const HEALTH_CHECKS = Symbol("HEALTH_CHECKS");
 export const WAGER_TRANSACTION_MANAGER = Symbol(
   "WAGER_TRANSACTION_MANAGER",
