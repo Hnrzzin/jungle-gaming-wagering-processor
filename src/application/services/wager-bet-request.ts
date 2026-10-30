@@ -60,6 +60,13 @@ export function parseWagerBetRequest(
   const amount = requireString(body.amount, "amount");
   const currency = requireString(body.currency, "currency");
 
+  if (providerId.length > 64) {
+    throw new InvalidWagerBetRequestError("providerId exceeds 64 characters");
+  }
+  if (externalTransactionId.length > 128) {
+    throw new InvalidWagerBetRequestError("externalTransactionId exceeds 128 characters");
+  }
+
   if (!/^[A-Z]{3}$/.test(currency)) {
     throw new InvalidWagerBetRequestError(
       "currency must be an ISO 4217 uppercase code",
