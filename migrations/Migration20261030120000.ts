@@ -94,11 +94,14 @@ export class Migration20261030120000 extends Migration {
         ALTER COLUMN created_at DROP DEFAULT;
     `);
 
+    // Restore the original NOT NULL contract. This intentionally fails
+    // if nullable metadata was written after this migration; callers must
+    // backfill those rows before rolling the migration back.
     this.addSql(`
       ALTER TABLE wagering_transactions
         ALTER COLUMN created_at DROP DEFAULT,
-        DROP COLUMN IF EXISTS round_id,
-        DROP COLUMN IF EXISTS game_id;
+        ALTER COLUMN round_id SET NOT NULL,
+        ALTER COLUMN game_id SET NOT NULL;
     `);
 
     this.addSql(`
