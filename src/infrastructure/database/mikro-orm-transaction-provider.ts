@@ -65,6 +65,31 @@ function normalizeQueryResult<T extends Record<string, unknown>>(
   };
 }
 
+function toMikroOrmPlaceholders(
+  sql: string,
+  parameters: readonly unknown[],
+): { query: string; parameters: unknown[] } {
+  const orderedParameters: unknown[] = [];
+  const query = sql.replace(/\$(\d+)/g, (_placeholder, position: string) => {
+    const index = Number(position) - 1;
+
+    if (!Number.isSafeInteger(index) || index < 0 || index >= parameters.length) {
+      throw new Error(`SQL placeholder ${position} has no matching parameter`);
+    }
+
+    orderedParameters.push(parameters[index]);
+    return "?";
+  });
+
+  if (orderedParameters.length !== parameters.length) {
+    throw new Error(
+      `SQL parameter count mismatch: expected ${orderedParameters.length}, received ${parameters.length}`,
+    );
+  }
+
+  return { query, parameters: orderedParameters };
+}
+
 function getQueryMethod(query: string): MikroOrmQueryMethod {
   const normalized = query.trimStart().toUpperCase();
 
@@ -90,10 +115,11 @@ class MikroOrmPostgreSQLConnection
     parameters: readonly unknown[] = [],
   ): Promise<PostgreSQLQueryResult<T>> {
     const method = getQueryMethod(sql);
+    const normalized = toMikroOrmPlaceholders(sql, parameters);
 
     const result = await this.entityManager
       .getConnection()
-      .execute(sql, [...parameters], method);
+      .execute(normalized.query, normalized.parameters, method);
 
     return normalizeQueryResult<T>(result);
   }
