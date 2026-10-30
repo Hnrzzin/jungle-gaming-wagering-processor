@@ -8,6 +8,8 @@ export interface WagerHttpTransaction {
   readonly providerId: string;
   readonly playerId: string;
   readonly walletId: string;
+  readonly roundId?: string;
+  readonly gameId?: string;
   readonly externalTransactionId: string;
   readonly type: string;
   readonly status: string;
@@ -30,6 +32,8 @@ function mapTransaction(
     providerId: transaction.providerId,
     playerId: transaction.playerId,
     walletId: transaction.walletId,
+    ...(transaction.roundId === undefined ? {} : { roundId: transaction.roundId }),
+    ...(transaction.gameId === undefined ? {} : { gameId: transaction.gameId }),
     externalTransactionId: transaction.externalTransactionId,
     type: transaction.type,
     status: transaction.status,
