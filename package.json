@@ -9,6 +9,7 @@
   "devDependencies": {
     "@mikro-orm/cli": "7.2.5",
     "@types/bun": "latest",
+    "@types/express": "^5.0.6",
     "@types/pg": "^8.23.1",
     "pg": "8.23.1"
   },
