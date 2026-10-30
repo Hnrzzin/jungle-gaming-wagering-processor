@@ -303,6 +303,8 @@ export class ProcessWager {
         ...identity,
         playerId: command.playerId,
         walletId: command.walletId,
+        ...(command.roundId === undefined ? {} : { roundId: command.roundId }),
+        ...(command.gameId === undefined ? {} : { gameId: command.gameId }),
         payloadHash,
         type: "BET",
         status: "PROCESSED",
