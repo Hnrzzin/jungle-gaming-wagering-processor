@@ -75,7 +75,7 @@ function toMikroOrmPlaceholders(
     const index = Number(position) - 1;
 
     if (!Number.isSafeInteger(index) || index < 0 || index >= parameters.length) {
-      throw new Error(`SQL placeholder ${position} has no matching parameter`);
+      throw new Error(`SQL placeholder $${position} has no matching parameter`);
     }
 
     referencedParameters.add(index);
