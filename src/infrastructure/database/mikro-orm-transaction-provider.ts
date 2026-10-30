@@ -70,6 +70,7 @@ function toMikroOrmPlaceholders(
   parameters: readonly unknown[],
 ): { query: string; parameters: unknown[] } {
   const orderedParameters: unknown[] = [];
+  const referencedParameters = new Set<number>();
   const query = sql.replace(/\$(\d+)/g, (_placeholder, position: string) => {
     const index = Number(position) - 1;
 
@@ -77,13 +78,14 @@ function toMikroOrmPlaceholders(
       throw new Error(`SQL placeholder ${position} has no matching parameter`);
     }
 
+    referencedParameters.add(index);
     orderedParameters.push(parameters[index]);
     return "?";
   });
 
-  if (orderedParameters.length !== parameters.length) {
+  if (referencedParameters.size !== parameters.length) {
     throw new Error(
-      `SQL parameter count mismatch: expected ${orderedParameters.length}, received ${parameters.length}`,
+      `SQL parameter count mismatch: expected ${referencedParameters.size}, received ${parameters.length}`,
     );
   }
 
